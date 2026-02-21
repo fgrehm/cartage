@@ -1,0 +1,33 @@
+version: 2
+
+builds:
+  - main: ./cmd/cartage
+    binary: cartage
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      # macOS and other OS builds can be added here if there's interest
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -X 'github.com/fgrehm/cartage/cli.version={{ .Version }}'
+      - -X 'github.com/fgrehm/cartage/cli.commit={{ .ShortCommit }}'
+      - -X 'github.com/fgrehm/cartage/cli.date={{ .Date }}'
+      - -X 'github.com/fgrehm/cartage/cli.goVersion={{ .Env.GOVERSION }}'
+
+archives:
+  - formats: [tar.gz]
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+
+checksum:
+  name_template: checksums.txt
+
+changelog:
+  filters:
+    exclude:
+      - "^docs:"
+      - "^ci:"
+      - "^chore:"
+      - "^test:"

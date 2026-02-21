@@ -1,0 +1,8 @@
+services:
+  shell:
+    build:
+      context: .
+    volumes:
+      - ${XDG_RUNTIME_DIR}/cartage.sock:/run/host/cartage.sock
+    stdin_open: true
+    tty: true

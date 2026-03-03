@@ -34,6 +34,16 @@ Cartage runs as a daemon on the host, listening on a Unix socket. Inside contain
 
 ## Install
 
+Download the latest release from [GitHub Releases](https://github.com/fgrehm/cartage/releases):
+
+```sh
+# Download and extract (replace ARCH with amd64 or arm64)
+curl -fsSL https://github.com/fgrehm/cartage/releases/latest/download/cartage_linux_ARCH.tar.gz | \
+  tar xz -C ~/.local/bin cartage
+```
+
+Or build from source:
+
 ```sh
 make build
 make install  # copies to ~/.local/bin

@@ -1,6 +1,7 @@
 package notify
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -9,21 +10,21 @@ import (
 
 // sendToast sends a non-blocking toast notification.
 // It prefers notify-send, falling back to kdialog --passivepopup on KDE systems.
-func sendToast(p Payload) error {
+func sendToast(ctx context.Context, p Payload) error {
 	tool := detectToastTool(p.ToolHint)
 	switch tool {
 	case ToastToolNotifySend:
-		return sendToastNotifySend(p)
+		return sendToastNotifySend(ctx, p)
 	case ToastToolKdialog:
-		return sendToastKdialog(p)
+		return sendToastKdialog(ctx, p)
 	default:
 		return fmt.Errorf("no toast notification tool available (install libnotify-bin or kdialog)")
 	}
 }
 
 // sendToastNotifySend sends a toast via notify-send.
-func sendToastNotifySend(p Payload) error {
-	cmd := exec.Command("notify-send")
+func sendToastNotifySend(ctx context.Context, p Payload) error {
+	cmd := exec.CommandContext(ctx, "notify-send")
 	cmd.Args = append(cmd.Args, p.Title)
 
 	if p.Body != nil {
@@ -60,7 +61,7 @@ func sendToastNotifySend(p Payload) error {
 }
 
 // sendToastKdialog sends a toast via kdialog --passivepopup.
-func sendToastKdialog(p Payload) error {
+func sendToastKdialog(ctx context.Context, p Payload) error {
 	text := p.Title
 	if p.Body != nil {
 		text = fmt.Sprintf("%s\n%s", p.Title, *p.Body)
@@ -75,7 +76,7 @@ func sendToastKdialog(p Payload) error {
 		}
 	}
 
-	cmd := exec.Command("kdialog",
+	cmd := exec.CommandContext(ctx, "kdialog",
 		"--passivepopup", text,
 		fmt.Sprint(timeoutSec),
 	)

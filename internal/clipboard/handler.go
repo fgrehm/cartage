@@ -72,30 +72,30 @@ func (h *Handler) Handle(ctx context.Context, raw json.RawMessage) (*protocol.Re
 	case OpRead:
 		tool, err := detectClipboardTool()
 		if err != nil {
-			return protocol.ErrorResponse(err.Error()), nil
+			return protocol.ErrorResponse(fmt.Sprintf("clipboard: %v", err)), nil
 		}
 		return h.handleRead(ctx, tool)
 
 	case OpWrite:
 		if p.Text == nil && p.ImageData == nil {
-			return protocol.ErrorResponse("write requires exactly one of: text, image_data"), nil
+			return protocol.ErrorResponse("clipboard: write requires exactly one of: text, image_data"), nil
 		}
 		if p.Text != nil && p.ImageData != nil {
-			return protocol.ErrorResponse("write requires exactly one of: text, image_data"), nil
+			return protocol.ErrorResponse("clipboard: write requires exactly one of: text, image_data"), nil
 		}
 		tool, err := detectClipboardTool()
 		if err != nil {
-			return protocol.ErrorResponse(err.Error()), nil
+			return protocol.ErrorResponse(fmt.Sprintf("clipboard: %v", err)), nil
 		}
 		return h.handleWrite(ctx, tool, p)
 
 	default:
-		return protocol.ErrorResponse(fmt.Sprintf("unknown clipboard op: %s", p.Op)), nil
+		return protocol.ErrorResponse(fmt.Sprintf("clipboard: unknown op: %s", p.Op)), nil
 	}
 }
 
 func (h *Handler) handleRead(ctx context.Context, tool ClipboardTool) (*protocol.Response, error) {
-	types, err := listClipboardTypes(tool)
+	types, err := listClipboardTypes(ctx, tool)
 	if err != nil {
 		return protocol.ErrorResponse(fmt.Sprintf("failed to list clipboard types: %v", err)), nil
 	}

@@ -27,12 +27,12 @@ func (h *Handler) Handle(ctx context.Context, raw json.RawMessage) (*protocol.Re
 	}
 
 	if p.URI == "" {
-		return protocol.ErrorResponse("uri is required"), nil
+		return protocol.ErrorResponse("open: uri is required"), nil
 	}
 
 	cmd := exec.CommandContext(ctx, "xdg-open", p.URI)
 	if err := cmd.Run(); err != nil {
-		return protocol.ErrorResponse(fmt.Sprintf("xdg-open failed: %v", err)), nil
+		return protocol.ErrorResponse(fmt.Sprintf("open: xdg-open failed: %v", err)), nil
 	}
 
 	return protocol.OkResponse(nil), nil

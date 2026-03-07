@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 )
 
 // ClipboardTool represents which clipboard tool is available.
@@ -19,7 +20,13 @@ const (
 	ToolNone
 )
 
+var clipboardToolOnce sync.Once
+var clipboardToolCached ClipboardTool
+var clipboardToolErr error
+
 // detectClipboardTool returns the best available clipboard tool.
+// Results are cached after the first call.
+//
 // Detection order:
 //  1. $WAYLAND_DISPLAY set + wl-copy in PATH → wl-clipboard
 //  2. xclip in PATH → xclip
@@ -27,31 +34,39 @@ const (
 //  4. wl-copy in PATH (no env check) → wl-clipboard
 //  5. error: no tool available
 func detectClipboardTool() (ClipboardTool, error) {
-	if os.Getenv("WAYLAND_DISPLAY") != "" {
-		if _, err := exec.LookPath("wl-copy"); err == nil {
-			return ToolWlClipboard, nil
+	clipboardToolOnce.Do(func() {
+		if os.Getenv("WAYLAND_DISPLAY") != "" {
+			if _, err := exec.LookPath("wl-copy"); err == nil {
+				clipboardToolCached = ToolWlClipboard
+				return
+			}
 		}
-	}
-	if _, err := exec.LookPath("xclip"); err == nil {
-		return ToolXclip, nil
-	}
-	if _, err := exec.LookPath("xsel"); err == nil {
-		return ToolXsel, nil
-	}
-	if _, err := exec.LookPath("wl-copy"); err == nil {
-		return ToolWlClipboard, nil
-	}
-	return ToolNone, fmt.Errorf("no clipboard tool available (install wl-clipboard, xclip, or xsel)")
+		if _, err := exec.LookPath("xclip"); err == nil {
+			clipboardToolCached = ToolXclip
+			return
+		}
+		if _, err := exec.LookPath("xsel"); err == nil {
+			clipboardToolCached = ToolXsel
+			return
+		}
+		if _, err := exec.LookPath("wl-copy"); err == nil {
+			clipboardToolCached = ToolWlClipboard
+			return
+		}
+		clipboardToolCached = ToolNone
+		clipboardToolErr = fmt.Errorf("no clipboard tool available (install wl-clipboard, xclip, or xsel)")
+	})
+	return clipboardToolCached, clipboardToolErr
 }
 
 // listClipboardTypes returns the MIME types currently available in the clipboard.
-func listClipboardTypes(tool ClipboardTool) ([]string, error) {
+func listClipboardTypes(ctx context.Context, tool ClipboardTool) ([]string, error) {
 	var cmd *exec.Cmd
 	switch tool {
 	case ToolWlClipboard:
-		cmd = exec.Command("wl-paste", "--list-types")
+		cmd = exec.CommandContext(ctx, "wl-paste", "--list-types")
 	case ToolXclip:
-		cmd = exec.Command("xclip", "-t", "TARGETS", "-selection", "clipboard", "-o")
+		cmd = exec.CommandContext(ctx, "xclip", "-t", "TARGETS", "-selection", "clipboard", "-o")
 	case ToolXsel:
 		// xsel does not support listing types; assume text
 		return []string{"text/plain"}, nil

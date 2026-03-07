@@ -1,10 +1,12 @@
 package notify
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os/exec"
 	"strings"
+	"sync"
 )
 
 // DialogTool represents available dialog tools on the system.
@@ -26,19 +28,32 @@ const (
 	ToastToolNone
 )
 
+// toolAvailableCache caches exec.LookPath results to avoid repeated PATH lookups.
+var toolAvailableCache sync.Map
+
+func isToolAvailable(name string) bool {
+	if v, ok := toolAvailableCache.Load(name); ok {
+		return v.(bool)
+	}
+	_, err := exec.LookPath(name)
+	available := err == nil
+	toolAvailableCache.Store(name, available)
+	return available
+}
+
 // detectToastTool finds which toast notification tool is available.
 // If hint matches an available tool, that tool is preferred.
 // Otherwise falls back to the default order: notify-send > kdialog.
 func detectToastTool(hint *string) ToastTool {
 	if hint != nil && *hint == "kdialog" {
-		if _, err := exec.LookPath("kdialog"); err == nil {
+		if isToolAvailable("kdialog") {
 			return ToastToolKdialog
 		}
 	}
-	if _, err := exec.LookPath("notify-send"); err == nil {
+	if isToolAvailable("notify-send") {
 		return ToastToolNotifySend
 	}
-	if _, err := exec.LookPath("kdialog"); err == nil {
+	if isToolAvailable("kdialog") {
 		return ToastToolKdialog
 	}
 	return ToastToolNone
@@ -51,26 +66,26 @@ func detectDialogTool(hint *string) DialogTool {
 	if hint != nil {
 		switch *hint {
 		case "kdialog":
-			if _, err := exec.LookPath("kdialog"); err == nil {
+			if isToolAvailable("kdialog") {
 				return DialogToolKdialog
 			}
 		case "zenity":
-			if _, err := exec.LookPath("zenity"); err == nil {
+			if isToolAvailable("zenity") {
 				return DialogToolZenity
 			}
 		case "yad":
-			if _, err := exec.LookPath("yad"); err == nil {
+			if isToolAvailable("yad") {
 				return DialogToolYad
 			}
 		}
 	}
-	if _, err := exec.LookPath("yad"); err == nil {
+	if isToolAvailable("yad") {
 		return DialogToolYad
 	}
-	if _, err := exec.LookPath("zenity"); err == nil {
+	if isToolAvailable("zenity") {
 		return DialogToolZenity
 	}
-	if _, err := exec.LookPath("kdialog"); err == nil {
+	if isToolAvailable("kdialog") {
 		return DialogToolKdialog
 	}
 	return DialogToolNone
@@ -107,7 +122,7 @@ func newDialogParams(p Payload, fallbackTitle string) dialogParams {
 }
 
 // sendAlert shows a blocking alert dialog with an OK button.
-func sendAlert(p Payload) error {
+func sendAlert(ctx context.Context, p Payload) error {
 	tool := detectDialogTool(p.ToolHint)
 	if tool == DialogToolNone {
 		return fmt.Errorf("no dialog tool available (install yad, zenity, or kdialog)")
@@ -119,7 +134,7 @@ func sendAlert(p Payload) error {
 
 	switch tool {
 	case DialogToolYad:
-		cmd = exec.Command("yad")
+		cmd = exec.CommandContext(ctx, "yad")
 		switch {
 		case p.Urgency != nil && *p.Urgency == "critical":
 			cmd.Args = append(cmd.Args, "--error")
@@ -144,7 +159,7 @@ func sendAlert(p Payload) error {
 		}
 
 	case DialogToolZenity:
-		cmd = exec.Command("zenity")
+		cmd = exec.CommandContext(ctx, "zenity")
 		switch {
 		case p.Urgency != nil && *p.Urgency == "critical":
 			cmd.Args = append(cmd.Args, "--error")
@@ -158,7 +173,7 @@ func sendAlert(p Payload) error {
 		)
 
 	case DialogToolKdialog:
-		cmd = exec.Command("kdialog")
+		cmd = exec.CommandContext(ctx, "kdialog")
 		switch {
 		case p.Urgency != nil && *p.Urgency == "critical":
 			cmd.Args = append(cmd.Args, "--error", dp.text)
@@ -186,7 +201,7 @@ func sendAlert(p Payload) error {
 
 // sendConfirm shows a blocking confirm dialog with Yes/No buttons.
 // Returns true for Yes, false for No/Cancel.
-func sendConfirm(p Payload) (bool, error) {
+func sendConfirm(ctx context.Context, p Payload) (bool, error) {
 	tool := detectDialogTool(p.ToolHint)
 	if tool == DialogToolNone {
 		return false, fmt.Errorf("no dialog tool available (install yad, zenity, or kdialog)")
@@ -198,7 +213,7 @@ func sendConfirm(p Payload) (bool, error) {
 
 	switch tool {
 	case DialogToolYad:
-		cmd = exec.Command("yad",
+		cmd = exec.CommandContext(ctx, "yad",
 			"--question",
 			"--title", dp.title,
 			"--text", dp.text,
@@ -217,7 +232,7 @@ func sendConfirm(p Payload) (bool, error) {
 		}
 
 	case DialogToolZenity:
-		cmd = exec.Command("zenity",
+		cmd = exec.CommandContext(ctx, "zenity",
 			"--question",
 			"--title", dp.title,
 			"--text", dp.text,
@@ -225,7 +240,7 @@ func sendConfirm(p Payload) (bool, error) {
 		)
 
 	case DialogToolKdialog:
-		cmd = exec.Command("kdialog",
+		cmd = exec.CommandContext(ctx, "kdialog",
 			"--yesno", dp.text,
 			"--title", dp.title,
 		)

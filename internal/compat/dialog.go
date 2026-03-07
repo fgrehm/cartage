@@ -20,8 +20,25 @@ func HandleZenity(args []string) {
 }
 
 // handleDialogCompat is the shared implementation for yad and zenity.
-// Supports both equals-separated (--text=value) and space-separated (--text value) arguments.
 func handleDialogCompat(args []string, toolName string) {
+	for _, arg := range args[1:] {
+		switch arg {
+		case "--version":
+			fmt.Printf("cartage (%s compatible)\n", toolName)
+			os.Exit(0)
+		case "--help":
+			printDialogHelp(toolName)
+			os.Exit(0)
+		}
+	}
+
+	payload := parseDialogArgs(args, toolName)
+	sendNotifyAndExit(payload)
+}
+
+// parseDialogArgs parses yad/zenity CLI arguments into a Payload.
+// Supports both equals-separated (--text=value) and space-separated (--text value) arguments.
+func parseDialogArgs(args []string, toolName string) notify.Payload {
 	var title, text, icon *string
 	var width, height *uint32
 	var isConfirm bool
@@ -63,12 +80,6 @@ func handleDialogCompat(args []string, toolName string) {
 
 		// Space-separated format: --text value
 		switch arg {
-		case "--version":
-			fmt.Printf("cartage (%s compatible)\n", toolName)
-			os.Exit(0)
-		case "--help":
-			printDialogHelp(toolName)
-			os.Exit(0)
 		case "--info":
 			urgency = strPtr("normal")
 		case "--warning":
@@ -130,7 +141,7 @@ func handleDialogCompat(args []string, toolName string) {
 		mode = notify.ModeConfirm
 	}
 
-	payload := notify.Payload{
+	return notify.Payload{
 		Title:    *title,
 		Body:     text,
 		Mode:     mode,
@@ -140,8 +151,6 @@ func handleDialogCompat(args []string, toolName string) {
 		Width:    width,
 		Height:   height,
 	}
-
-	sendNotifyAndExit(payload)
 }
 
 func printDialogHelp(toolName string) {

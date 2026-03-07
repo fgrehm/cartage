@@ -10,6 +10,23 @@ import (
 
 // HandleKdialog handles kdialog compatibility mode.
 func HandleKdialog(args []string) {
+	for _, arg := range args[1:] {
+		switch arg {
+		case "--version":
+			fmt.Printf("cartage (kdialog compatible)\n")
+			os.Exit(0)
+		case "--help":
+			printKdialogHelp()
+			os.Exit(0)
+		}
+	}
+
+	payload := parseKdialogArgs(args)
+	sendNotifyAndExit(payload)
+}
+
+// parseKdialogArgs parses kdialog CLI arguments into a Payload.
+func parseKdialogArgs(args []string) notify.Payload {
 	var title, text, icon *string
 	var isConfirm bool
 	var isToast bool
@@ -21,12 +38,6 @@ func HandleKdialog(args []string) {
 		arg := args[i]
 
 		switch arg {
-		case "--version":
-			fmt.Printf("cartage (kdialog compatible)\n")
-			os.Exit(0)
-		case "--help":
-			printKdialogHelp()
-			os.Exit(0)
 		case "--passivepopup":
 			isToast = true
 			i++
@@ -89,7 +100,7 @@ func HandleKdialog(args []string) {
 	}
 
 	toolHint := "kdialog"
-	payload := notify.Payload{
+	return notify.Payload{
 		Title:    *title,
 		Body:     text,
 		Mode:     mode,
@@ -98,8 +109,6 @@ func HandleKdialog(args []string) {
 		Urgency:  urgency,
 		Timeout:  timeout,
 	}
-
-	sendNotifyAndExit(payload)
 }
 
 func printKdialogHelp() {

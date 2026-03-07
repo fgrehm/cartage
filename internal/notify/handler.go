@@ -22,40 +22,40 @@ func (h *Handler) Handle(ctx context.Context, raw json.RawMessage) (*protocol.Re
 	}
 
 	if p.Title == "" {
-		return protocol.ErrorResponse("title is required"), nil
+		return protocol.ErrorResponse("notify: title is required"), nil
 	}
 
 	id := uuid.New().String()
 
 	switch p.Mode {
 	case ModeToast:
-		if err := sendToast(p); err != nil {
+		if err := sendToast(ctx, p); err != nil {
 			slog.Error("failed to send toast", "error", err)
-			return protocol.ErrorResponse(fmt.Sprintf("failed to send notification: %v", err)), nil
+			return protocol.ErrorResponse(fmt.Sprintf("notify: failed to send notification: %v", err)), nil
 		}
 		slog.Info("toast notification sent", "id", id, "title", p.Title)
 		return protocol.OkResponse(Result{ID: id}), nil
 
 	case ModeAlert:
 		slog.Info("showing alert dialog", "title", p.Title)
-		if err := sendAlert(p); err != nil {
+		if err := sendAlert(ctx, p); err != nil {
 			slog.Error("failed to show alert", "error", err)
-			return protocol.ErrorResponse(fmt.Sprintf("failed to show alert dialog: %v", err)), nil
+			return protocol.ErrorResponse(fmt.Sprintf("notify: failed to show alert dialog: %v", err)), nil
 		}
 		slog.Info("alert dialog dismissed", "id", id)
 		return protocol.OkResponse(Result{ID: id}), nil
 
 	case ModeConfirm:
 		slog.Info("showing confirm dialog", "title", p.Title)
-		confirmed, err := sendConfirm(p)
+		confirmed, err := sendConfirm(ctx, p)
 		if err != nil {
 			slog.Error("failed to show confirm dialog", "error", err)
-			return protocol.ErrorResponse(fmt.Sprintf("failed to show confirm dialog: %v", err)), nil
+			return protocol.ErrorResponse(fmt.Sprintf("notify: failed to show confirm dialog: %v", err)), nil
 		}
 		slog.Info("confirm dialog answered", "id", id, "confirmed", confirmed)
 		return protocol.OkResponse(Result{ID: id, Confirmed: &confirmed}), nil
 
 	default:
-		return protocol.ErrorResponse(fmt.Sprintf("unknown notification mode: %s", p.Mode)), nil
+		return protocol.ErrorResponse(fmt.Sprintf("notify: unknown mode: %s", p.Mode)), nil
 	}
 }

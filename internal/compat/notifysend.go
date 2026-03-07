@@ -11,6 +11,29 @@ import (
 
 // HandleNotifySend handles notify-send compatibility mode.
 func HandleNotifySend(args []string) {
+	for _, arg := range args[1:] {
+		switch arg {
+		case "-v", "--version":
+			fmt.Printf("cartage (notify-send compatible)\n")
+			os.Exit(0)
+		case "-h", "--help":
+			printNotifySendHelp()
+			os.Exit(0)
+		}
+	}
+
+	payload, err := parseNotifySendArgs(args)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Fprintln(os.Stderr, "Try 'notify-send --help' for more information")
+		os.Exit(1)
+	}
+
+	sendNotifyAndExit(payload)
+}
+
+// parseNotifySendArgs parses notify-send CLI arguments into a Payload.
+func parseNotifySendArgs(args []string) (notify.Payload, error) {
 	var title, body *string
 	var icon, urgency *string
 	var timeout uint32 = 5000
@@ -20,12 +43,6 @@ func HandleNotifySend(args []string) {
 		arg := args[i]
 
 		switch arg {
-		case "-v", "--version":
-			fmt.Printf("cartage (notify-send compatible)\n")
-			os.Exit(0)
-		case "-h", "--help":
-			printNotifySendHelp()
-			os.Exit(0)
 		case "-i", "--icon":
 			i++
 			if i < len(args) {
@@ -48,9 +65,7 @@ func HandleNotifySend(args []string) {
 		case "--hint":
 			i++ // Skip next arg
 		default:
-			if strings.HasPrefix(arg, "-") {
-				fmt.Fprintf(os.Stderr, "Warning: Unknown option: %s\n", arg)
-			} else {
+			if !strings.HasPrefix(arg, "-") {
 				if title == nil {
 					title = &arg
 				} else if body == nil {
@@ -62,21 +77,17 @@ func HandleNotifySend(args []string) {
 	}
 
 	if title == nil {
-		fmt.Fprintln(os.Stderr, "Error: Title is required")
-		fmt.Fprintln(os.Stderr, "Try 'notify-send --help' for more information")
-		os.Exit(1)
+		return notify.Payload{}, fmt.Errorf("title is required")
 	}
 
-	payload := notify.Payload{
+	return notify.Payload{
 		Title:   *title,
 		Body:    body,
 		Mode:    notify.ModeToast,
 		Icon:    icon,
 		Timeout: &timeout,
 		Urgency: urgency,
-	}
-
-	sendNotifyAndExit(payload)
+	}, nil
 }
 
 func printNotifySendHelp() {

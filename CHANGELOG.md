@@ -12,6 +12,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Devcontainer config for [crib](https://github.com/fgrehm/crib)
 - `pbpaste` image output when stdout is piped (e.g. `pbpaste > file.png`)
 
+### Fixed
+
+- Server shutdown now returns an error when drain timeout expires instead of silently succeeding
+- Context cancellation in clipboard type listing no longer masked as empty clipboard
+- Panic-safe type assertion in dialog tool availability cache
+- Install snippet handles `arm64` and unsupported architectures with clear errors
+
 ## [0.1.0] - 2026-03-03
 
 ### Added

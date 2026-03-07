@@ -39,7 +39,11 @@ func HandlePbpaste(_ []string) {
 	}
 
 	if result.ContentType == clipboard.ContentImage {
-		stat, _ := os.Stdout.Stat()
+		stat, err := os.Stdout.Stat()
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: failed to stat stdout: %v\n", err)
+			os.Exit(1)
+		}
 		if stat.Mode()&os.ModeCharDevice != 0 {
 			fmt.Fprintln(os.Stderr, "Error: clipboard contains an image, not text (use pbpaste > file.png to save)")
 			os.Exit(1)

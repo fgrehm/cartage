@@ -56,9 +56,9 @@ func parseDialogArgs(args []string, toolName string) notify.Payload {
 
 			switch flag {
 			case "--title":
-				title = &value
+				title = strPtr(value)
 			case "--text":
-				text = &value
+				text = strPtr(value)
 			case "--width":
 				if w, err := strconv.ParseUint(value, 10, 32); err == nil {
 					w32 := uint32(w)
@@ -70,7 +70,7 @@ func parseDialogArgs(args []string, toolName string) notify.Payload {
 					height = &h32
 				}
 			case "--image":
-				icon = &value
+				icon = strPtr(value)
 			case "--timeout", "--button", "--borders", "--buttons-layout":
 				// Ignore
 			}

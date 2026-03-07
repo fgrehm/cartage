@@ -65,11 +65,13 @@ func parseNotifySendArgs(args []string) (notify.Payload, error) {
 		case "--hint":
 			i++ // Skip next arg
 		default:
-			if !strings.HasPrefix(arg, "-") {
+			if strings.HasPrefix(arg, "-") {
+				fmt.Fprintf(os.Stderr, "Warning: unknown option: %s\n", arg)
+			} else {
 				if title == nil {
-					title = &arg
+					title = &args[i]
 				} else if body == nil {
-					body = &arg
+					body = &args[i]
 				}
 			}
 		}

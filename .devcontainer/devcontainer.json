@@ -1,0 +1,10 @@
+{
+  "name": "cartage",
+  "image": "mcr.microsoft.com/devcontainers/go:1.25",
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=${localEnv:XDG_RUNTIME_DIR}/cartage.sock,target=/run/host/cartage.sock,type=bind"
+  ],
+  "postCreateCommand": ".devcontainer/setup.sh",
+  "customizations": {}
+}

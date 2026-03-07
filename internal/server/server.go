@@ -53,25 +53,11 @@ func Run(ctx context.Context, socketPath string, registry *handler.Registry, ver
 
 	var wg sync.WaitGroup
 
-	// Shutdown goroutine: when ctx is cancelled, close listener and drain connections
+	// Shutdown goroutine: when ctx is cancelled, close listener to unblock Accept
 	go func() {
 		<-ctx.Done()
 		slog.Info("shutting down")
 		_ = listener.Close()
-
-		// Wait for in-flight connections with a timeout
-		done := make(chan struct{})
-		go func() {
-			wg.Wait()
-			close(done)
-		}()
-
-		select {
-		case <-done:
-			slog.Info("all connections drained")
-		case <-time.After(5 * time.Second):
-			slog.Warn("shutdown timeout, forcing exit")
-		}
 	}()
 
 	for {
@@ -92,8 +78,20 @@ func Run(ctx context.Context, socketPath string, registry *handler.Registry, ver
 		}()
 	}
 
-	// Wait for remaining connections
-	wg.Wait()
+	// Wait for in-flight connections with a timeout
+	done := make(chan struct{})
+	go func() {
+		wg.Wait()
+		close(done)
+	}()
+
+	select {
+	case <-done:
+		slog.Info("all connections drained")
+	case <-time.After(5 * time.Second):
+		slog.Warn("shutdown timeout, forcing exit")
+	}
+
 	return nil
 }
 

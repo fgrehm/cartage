@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.0] - 2026-03-07
+
+### Added
+
+- Devcontainer config for [crib](https://github.com/fgrehm/crib)
+- `pbpaste` image output when stdout is piped (e.g. `pbpaste > file.png`)
+
 ## [0.1.0] - 2026-03-03
 
 ### Added

@@ -4,6 +4,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/fgrehm/cartage/internal/client"
@@ -38,28 +39,37 @@ func HandlePbpaste(_ []string) {
 		os.Exit(1)
 	}
 
+	stat, err := os.Stdout.Stat()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "Error: failed to stat stdout: %v\n", err)
+		os.Exit(1)
+	}
+	isTerminal := stat.Mode()&os.ModeCharDevice != 0
+
+	if err := writePbpasteResult(result, isTerminal, os.Stdout); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		os.Exit(1)
+	}
+	os.Exit(0)
+}
+
+// writePbpasteResult writes the clipboard result to w.
+// For text content, it writes the text directly.
+// For image content, it writes decoded bytes when not a terminal,
+// or returns an error when stdout is a terminal.
+func writePbpasteResult(result clipboard.Result, isTerminal bool, w io.Writer) error {
 	if result.ContentType == clipboard.ContentImage {
-		stat, err := os.Stdout.Stat()
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: failed to stat stdout: %v\n", err)
-			os.Exit(1)
-		}
-		if stat.Mode()&os.ModeCharDevice != 0 {
-			fmt.Fprintln(os.Stderr, "Error: clipboard contains an image, not text (use pbpaste > file to save)")
-			os.Exit(1)
+		if isTerminal {
+			return fmt.Errorf("clipboard contains an image, not text (use pbpaste > file to save)")
 		}
 		data, err := base64.StdEncoding.DecodeString(result.ImageData)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Error: failed to decode image data: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to decode image data: %w", err)
 		}
-		if _, err := os.Stdout.Write(data); err != nil {
-			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-			os.Exit(1)
-		}
-		os.Exit(0)
+		_, err = w.Write(data)
+		return err
 	}
 
-	fmt.Print(result.Text)
-	os.Exit(0)
+	_, err := fmt.Fprint(w, result.Text)
+	return err
 }

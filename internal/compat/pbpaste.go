@@ -45,7 +45,7 @@ func HandlePbpaste(_ []string) {
 			os.Exit(1)
 		}
 		if stat.Mode()&os.ModeCharDevice != 0 {
-			fmt.Fprintln(os.Stderr, "Error: clipboard contains an image, not text (use pbpaste > file.png to save)")
+			fmt.Fprintln(os.Stderr, "Error: clipboard contains an image, not text (use pbpaste > file to save)")
 			os.Exit(1)
 		}
 		data, err := base64.StdEncoding.DecodeString(result.ImageData)

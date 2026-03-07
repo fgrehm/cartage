@@ -33,7 +33,9 @@ var toolAvailableCache sync.Map
 
 func isToolAvailable(name string) bool {
 	if v, ok := toolAvailableCache.Load(name); ok {
-		return v.(bool)
+		if b, ok := v.(bool); ok {
+			return b
+		}
 	}
 	_, err := exec.LookPath(name)
 	available := err == nil

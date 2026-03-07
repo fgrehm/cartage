@@ -37,7 +37,13 @@ Cartage runs as a daemon on the host, listening on a Unix socket. Inside contain
 Download the latest release from [GitHub Releases](https://github.com/fgrehm/cartage/releases):
 
 ```sh
-curl -fsSL "https://github.com/fgrehm/cartage/releases/latest/download/cartage_linux_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | \
+arch="$(uname -m)"
+case "$arch" in
+  x86_64)  arch="amd64" ;;
+  aarch64|arm64) arch="arm64" ;;
+  *) echo "Unsupported architecture: $arch" >&2; exit 1 ;;
+esac
+curl -fsSL "https://github.com/fgrehm/cartage/releases/latest/download/cartage_linux_${arch}.tar.gz" | \
   tar xz -C ~/.local/bin cartage
 ```
 

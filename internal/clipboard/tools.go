@@ -76,6 +76,9 @@ func listClipboardTypes(ctx context.Context, tool ClipboardTool) ([]string, erro
 
 	out, err := cmd.Output()
 	if err != nil {
+		if ctx.Err() != nil {
+			return nil, fmt.Errorf("listing clipboard types: %w", ctx.Err())
+		}
 		// An empty clipboard is not a fatal error
 		return nil, nil
 	}

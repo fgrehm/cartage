@@ -90,6 +90,7 @@ func Run(ctx context.Context, socketPath string, registry *handler.Registry, ver
 		slog.Info("all connections drained")
 	case <-time.After(5 * time.Second):
 		slog.Warn("shutdown timeout, forcing exit")
+		return fmt.Errorf("shutdown timeout waiting for in-flight connections")
 	}
 
 	return nil

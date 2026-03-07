@@ -1,6 +1,7 @@
 package compat
 
 import (
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -38,8 +39,21 @@ func HandlePbpaste(_ []string) {
 	}
 
 	if result.ContentType == clipboard.ContentImage {
-		fmt.Fprintln(os.Stderr, "Error: clipboard contains an image, not text")
-		os.Exit(1)
+		stat, _ := os.Stdout.Stat()
+		if stat.Mode()&os.ModeCharDevice != 0 {
+			fmt.Fprintln(os.Stderr, "Error: clipboard contains an image, not text (use pbpaste > file.png to save)")
+			os.Exit(1)
+		}
+		data, err := base64.StdEncoding.DecodeString(result.ImageData)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: failed to decode image data: %v\n", err)
+			os.Exit(1)
+		}
+		if _, err := os.Stdout.Write(data); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		os.Exit(0)
 	}
 
 	fmt.Print(result.Text)

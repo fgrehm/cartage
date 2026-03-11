@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [0.2.1] - 2026-03-11
+
+### Fixed
+
+- `xdg-open` and dialog tool failures now surface the subprocess stderr in the error message, making "could not connect to display" and similar errors visible to the caller
+- Systemd service example now uses `graphical-session.target` so the daemon inherits `WAYLAND_DISPLAY`/`DISPLAY` from the desktop session
+
 ## [0.2.0] - 2026-03-08
 
 ### Added

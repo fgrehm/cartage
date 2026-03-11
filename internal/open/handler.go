@@ -1,6 +1,7 @@
 package open
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -30,9 +31,15 @@ func (h *Handler) Handle(ctx context.Context, raw json.RawMessage) (*protocol.Re
 		return protocol.ErrorResponse("open: uri is required"), nil
 	}
 
+	var stderr bytes.Buffer
 	cmd := exec.CommandContext(ctx, "xdg-open", p.URI)
+	cmd.Stderr = &stderr
 	if err := cmd.Run(); err != nil {
-		return protocol.ErrorResponse(fmt.Sprintf("open: xdg-open failed: %v", err)), nil
+		msg := fmt.Sprintf("open: xdg-open failed: %v", err)
+		if out := stderr.String(); out != "" {
+			msg += "\n" + out
+		}
+		return protocol.ErrorResponse(msg), nil
 	}
 
 	return protocol.OkResponse(nil), nil

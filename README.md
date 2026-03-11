@@ -74,6 +74,7 @@ For persistent use, create a systemd user service:
 [Unit]
 Description=Container-to-host bridge daemon
 After=graphical-session.target
+PartOf=graphical-session.target
 
 [Service]
 Type=simple
@@ -82,8 +83,17 @@ Restart=on-failure
 RestartSec=10
 
 [Install]
-WantedBy=default.target
+WantedBy=graphical-session.target
 ```
+
+> **Note:** `WantedBy=graphical-session.target` ensures the service starts after your desktop session is
+> up and inherits `WAYLAND_DISPLAY`/`DISPLAY`/`DBUS_SESSION_BUS_ADDRESS` from it. Modern GNOME and KDE
+> export these automatically. If notifications or `xdg-open` fail with "could not connect to display",
+> add this to your session startup (e.g. `~/.profile` or your DE's autostart):
+>
+> ```sh
+> systemctl --user import-environment WAYLAND_DISPLAY DISPLAY DBUS_SESSION_BUS_ADDRESS
+> ```
 
 ### Send a notification
 

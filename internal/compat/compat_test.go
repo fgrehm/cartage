@@ -38,19 +38,19 @@ func TestGetCompatMode(t *testing.T) {
 }
 
 func TestIsCompatMode(t *testing.T) {
-	if !IsCompatMode("notify-send") {
+	if GetCompatMode("notify-send") == "" {
 		t.Error("notify-send should be compat mode")
 	}
-	if !IsCompatMode("xdg-open") {
+	if GetCompatMode("xdg-open") == "" {
 		t.Error("xdg-open should be compat mode")
 	}
-	if !IsCompatMode("pbcopy") {
+	if GetCompatMode("pbcopy") == "" {
 		t.Error("pbcopy should be compat mode")
 	}
-	if !IsCompatMode("pbpaste") {
+	if GetCompatMode("pbpaste") == "" {
 		t.Error("pbpaste should be compat mode")
 	}
-	if IsCompatMode("cartage") {
+	if GetCompatMode("cartage") != "" {
 		t.Error("cartage should not be compat mode")
 	}
 }

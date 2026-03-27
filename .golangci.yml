@@ -1,0 +1,35 @@
+version: "2"
+
+run:
+  timeout: 3m
+
+linters:
+  enable:
+    - copyloopvar
+    - errcheck
+    - errorlint
+    - gocritic
+    - govet
+    - ineffassign
+    - intrange
+    - modernize
+    - staticcheck
+    - unconvert
+    - unparam
+    - unused
+    - usetesting
+  exclusions:
+    rules:
+      - path: _test\.go
+        linters:
+          - errcheck
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+
+formatters:
+  enable:
+    - gofumpt
+    - goimports

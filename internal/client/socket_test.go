@@ -58,11 +58,11 @@ func TestFindSocketPath_ExistingSocket(t *testing.T) {
 
 	// Create a fake socket at the container mount point
 	containerPath := filepath.Join(tmpDir, "run-host")
-	if err := os.MkdirAll(containerPath, 0755); err != nil {
+	if err := os.MkdirAll(containerPath, 0o755); err != nil {
 		t.Fatal(err)
 	}
 	sockPath := filepath.Join(containerPath, "cartage.sock")
-	if err := os.WriteFile(sockPath, nil, 0600); err != nil {
+	if err := os.WriteFile(sockPath, nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
 

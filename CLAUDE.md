@@ -8,14 +8,21 @@ Cartage is a container-to-host bridge daemon written in Go. It routes intents (n
 
 ## Commands
 
-- `make build` - compile to `dist/cartage` (injects version via ldflags)
-- `make test` - run tests with `-race` and `-shuffle=on`
-- `go test -race -shuffle=on ./internal/notify/...` - run tests for a single package
-- `make lint` - run golangci-lint v2 (`go tool golangci-lint`)
-- `make fmt` - format with gofumpt/goimports via golangci-lint
-- `make coverage` - generate HTML coverage report
-- `make vendor` - tidy and vendor dependencies
-- `make install` - build and copy to `~/.local/bin`
+```bash
+make build       # compile to dist/cartage (injects version via ldflags)
+make test        # run tests (-race -shuffle=on)
+make lint        # golangci-lint v2 (go tool)
+make fmt         # format with gofumpt/goimports (go tool)
+make deadcode    # check for unreachable functions
+make audit       # cyclomatic complexity check (gocyclo, informational)
+make coverage    # generate HTML coverage report
+make vendor      # tidy and vendor dependencies
+make install     # build and install to ~/.local/bin
+make setup-hooks # configure .githooks/ pre-commit hook
+make clean       # remove build artifacts
+```
+
+Run a single package: `go test -race -shuffle=on ./internal/notify/...`
 
 ## Architecture
 
@@ -54,4 +61,23 @@ Cobra commands: `serve` (start daemon), `notify` (send notification), `open` (op
 
 ## Go Version and Dependencies
 
-Go 1.25.0. Direct dependencies: `spf13/cobra` (CLI), `google/uuid` (notification IDs). Linting via `go tool golangci-lint` (vendored as a Go tool dependency).
+Go 1.25.0. Direct dependencies: `spf13/cobra` (CLI), `google/uuid` (notification IDs).
+Tool dependencies: `golangci-lint` v2, `deadcode`, `gocyclo` (all via `go tool`).
+
+## CHANGELOG
+
+This project uses [Keep a Changelog](https://keepachangelog.com/) format. When adding
+features, fixing bugs, or making breaking changes, add an entry under the `[Unreleased]`
+section of `CHANGELOG.md` before the session ends. Categories: Added, Changed, Deprecated,
+Removed, Fixed, Security.
+
+Before wrapping up a session, check whether CHANGELOG.md needs an update for the work done.
+
+## Releasing
+
+1. Move `CHANGELOG.md` `[Unreleased]` entries to `[X.Y.Z] - YYYY-MM-DD`.
+2. Update `VERSION` file.
+3. Commit: `chore: release vX.Y.Z`
+4. Tag and push: `git tag vX.Y.Z && git push origin main vX.Y.Z`
+
+CI extracts release notes from CHANGELOG.md and runs GoReleaser.

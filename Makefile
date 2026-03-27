@@ -1,4 +1,4 @@
-.PHONY: help build test install clean lint fmt coverage vendor setup-hooks
+.PHONY: help build test install clean lint fmt coverage vendor setup-hooks deadcode audit
 
 # Build variables
 BASE_VERSION := $(shell cat VERSION 2>/dev/null || echo "0.0.0")
@@ -81,3 +81,16 @@ vendor: ## Update vendored dependencies
 	@go mod tidy
 	@go mod vendor
 	@echo "✓ Dependencies vendored"
+
+deadcode: ## Check for unreachable functions
+	@out=$$(go tool deadcode ./...); \
+	if [ -n "$$out" ]; then \
+		echo "Unreachable functions detected:"; \
+		echo "$$out"; \
+		exit 1; \
+	fi; \
+	echo "✓ No dead code found."
+
+audit: ## Run complexity analysis (informational, gocyclo -over 15)
+	@echo "=== Cyclomatic complexity (>15) ==="
+	@go tool gocyclo -over 15 . || true

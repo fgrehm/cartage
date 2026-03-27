@@ -14,16 +14,16 @@ const (
 // Payload is the action-specific data for a "notify" request.
 type Payload struct {
 	Title    string  `json:"title"`               // Required: notification title
-	Body     *string `json:"body,omitempty"`       // Optional: notification body
-	Mode     Mode    `json:"mode,omitempty"`       // Notification mode (defaults to toast)
-	ToolHint *string `json:"tool_hint,omitempty"`  // Preferred host tool (e.g. "kdialog", "zenity")
-	Icon     *string `json:"icon,omitempty"`       // Freedesktop icon name or path
-	IconData *string `json:"icon_data,omitempty"`  // Base64-encoded image data
-	IconType *string `json:"icon_type,omitempty"`  // Image format (png, jpg, svg)
-	Urgency  *string `json:"urgency,omitempty"`    // low, normal, critical
-	Timeout  *uint32 `json:"timeout,omitempty"`    // Milliseconds (0 = never expire)
-	Width    *uint32 `json:"width,omitempty"`      // Dialog width in pixels
-	Height   *uint32 `json:"height,omitempty"`     // Dialog height in pixels
+	Body     *string `json:"body,omitempty"`      // Optional: notification body
+	Mode     Mode    `json:"mode,omitempty"`      // Notification mode (defaults to toast)
+	ToolHint *string `json:"tool_hint,omitempty"` // Preferred host tool (e.g. "kdialog", "zenity")
+	Icon     *string `json:"icon,omitempty"`      // Freedesktop icon name or path
+	IconData *string `json:"icon_data,omitempty"` // Base64-encoded image data
+	IconType *string `json:"icon_type,omitempty"` // Image format (png, jpg, svg)
+	Urgency  *string `json:"urgency,omitempty"`   // low, normal, critical
+	Timeout  *uint32 `json:"timeout,omitempty"`   // Milliseconds (0 = never expire)
+	Width    *uint32 `json:"width,omitempty"`     // Dialog width in pixels
+	Height   *uint32 `json:"height,omitempty"`    // Dialog height in pixels
 }
 
 // UnmarshalJSON defaults mode to "toast" when omitted.

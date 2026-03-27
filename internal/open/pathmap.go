@@ -21,7 +21,7 @@ func MapPath(uri string) string {
 	}
 
 	var bestFrom, bestTo string
-	for _, entry := range strings.Split(raw, ",") {
+	for entry := range strings.SplitSeq(raw, ",") {
 		from, to, ok := strings.Cut(entry, ":")
 		if !ok {
 			continue

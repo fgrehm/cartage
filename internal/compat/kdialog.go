@@ -53,13 +53,13 @@ func parseKdialogArgs(args []string) notify.Payload {
 				}
 			}
 		case "--msgbox":
-			urgency = strPtr("normal")
+			urgency = new("normal")
 			i++
 			if i < len(args) {
 				text = &args[i]
 			}
 		case "--error":
-			urgency = strPtr("critical")
+			urgency = new("critical")
 			i++
 			if i < len(args) {
 				text = &args[i]
@@ -89,7 +89,7 @@ func parseKdialogArgs(args []string) notify.Payload {
 		title = text
 	}
 	if title == nil {
-		title = strPtr("Dialog")
+		title = new("Dialog")
 	}
 
 	mode := notify.ModeAlert

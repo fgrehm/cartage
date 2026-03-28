@@ -1,18 +1,22 @@
 #!/bin/bash
 set -e
 
-staged_go_files=$(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true)
+mapfile -t staged_go_files < <(git diff --cached --name-only --diff-filter=ACM | grep '\.go$' || true)
 
-if [ -z "$staged_go_files" ]; then
+if ((${#staged_go_files[@]} == 0)); then
   exit 0
 fi
 
 echo "Formatting staged Go files..."
-go tool golangci-lint fmt $staged_go_files
-git add $staged_go_files
+go tool golangci-lint fmt "${staged_go_files[@]}"
+git add -- "${staged_go_files[@]}"
 echo "Done"
 
 echo "Running linter..."
-go tool golangci-lint run --new-from-rev=HEAD~1 --fix
-git add $staged_go_files
+if git rev-parse --verify HEAD >/dev/null 2>&1; then
+  go tool golangci-lint run --new-from-rev=HEAD --fix
+else
+  go tool golangci-lint run --fix "${staged_go_files[@]}"
+fi
+git add -- "${staged_go_files[@]}"
 echo "Done"

@@ -41,8 +41,8 @@ test: ## Run tests
 	@go test -race -shuffle=on ./...
 
 install: build ## Install cartage to ~/.local/bin (symlink)
-	@mkdir -p $(HOME)/.local/bin
-	@ln -sf $(PWD)/dist/cartage $(HOME)/.local/bin/cartage
+	@mkdir -p "$(HOME)/.local/bin"
+	@ln -sf "$(CURDIR)/dist/cartage" "$(HOME)/.local/bin/cartage"
 	@echo "✓ Installed to ~/.local/bin/cartage"
 
 clean: ## Remove build artifacts
@@ -82,6 +82,9 @@ deadcode: ## Check for unreachable functions
 	fi; \
 	echo "✓ No dead code found."
 
-audit: ## Run complexity analysis (informational, gocyclo -over 15)
+audit: ## Run complexity and vulnerability checks (informational)
 	@echo "=== Cyclomatic complexity (>15) ==="
 	@go tool gocyclo -over 15 . || true
+	@echo ""
+	@echo "=== Vulnerability check ==="
+	@go tool govulncheck ./... || true

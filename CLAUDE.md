@@ -61,7 +61,7 @@ Cobra commands: `serve` (start daemon), `notify` (send notification), `open` (op
 
 ## Go Version and Dependencies
 
-Go 1.25.0. Direct dependencies: `spf13/cobra` (CLI), `google/uuid` (notification IDs).
+Go 1.26.1. Direct dependencies: `spf13/cobra` (CLI), `google/uuid` (notification IDs).
 Tool dependencies: `golangci-lint` v2, `deadcode`, `gocyclo` (all via `go tool`).
 
 ## CHANGELOG

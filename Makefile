@@ -40,19 +40,10 @@ build: ## Build the cartage binary
 test: ## Run tests
 	@go test -race -shuffle=on ./...
 
-install: build ## Install cartage to ~/.local/bin
-	@echo "Installing to ~/.local/bin..."
-	@mkdir -p ~/.local/bin
-	@if [ -L ~/.local/bin/cartage ]; then \
-		echo "✓ Already installed as symlink (rebuilt binary at dist/cartage)"; \
-	elif [ -e ~/.local/bin/cartage ]; then \
-		rm -f ~/.local/bin/cartage; \
-		cp dist/cartage ~/.local/bin/cartage; \
-		echo "✓ Replaced existing file and installed to ~/.local/bin/cartage"; \
-	else \
-		cp dist/cartage ~/.local/bin/cartage; \
-		echo "✓ Installed to ~/.local/bin/cartage"; \
-	fi
+install: build ## Install cartage to ~/.local/bin (symlink)
+	@mkdir -p $(HOME)/.local/bin
+	@ln -sf $(PWD)/dist/cartage $(HOME)/.local/bin/cartage
+	@echo "✓ Installed to ~/.local/bin/cartage"
 
 clean: ## Remove build artifacts
 	@echo "Cleaning..."

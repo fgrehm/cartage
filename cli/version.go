@@ -2,16 +2,16 @@ package cli
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/spf13/cobra"
 )
 
 var (
 	// Version information, set via ldflags at build time
-	version   = "DEVELOPMENT"
-	commit    = "none"
-	date      = "unknown"
-	goVersion = "unknown"
+	version = "DEVELOPMENT"
+	commit  = "none"
+	date    = "unknown"
 )
 
 var versionCmd = &cobra.Command{
@@ -22,7 +22,7 @@ var versionCmd = &cobra.Command{
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "cartage version %s\n", version)
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "  commit: %s\n", commit)
 		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "  built:  %s\n", date)
-		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "  go:     %s\n", goVersion)
+		_, _ = fmt.Fprintf(cmd.OutOrStdout(), "  go:     %s\n", runtime.Version())
 	},
 }
 

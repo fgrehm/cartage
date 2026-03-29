@@ -25,7 +25,7 @@ func decodeAndSaveIcon(iconData string, iconType *string) (string, error) {
 	filename := fmt.Sprintf("cartage-%s.%s", uuid.New().String(), ext)
 	tempPath := filepath.Join(os.TempDir(), filename)
 
-	if err := os.WriteFile(tempPath, decoded, 0644); err != nil {
+	if err := os.WriteFile(tempPath, decoded, 0o644); err != nil {
 		return "", fmt.Errorf("failed to write temp icon file: %w", err)
 	}
 

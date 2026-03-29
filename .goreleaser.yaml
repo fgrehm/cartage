@@ -12,10 +12,10 @@ builds:
       - amd64
       - arm64
     ldflags:
+      - -s -w
       - -X 'github.com/fgrehm/cartage/cli.version={{ .Version }}'
       - -X 'github.com/fgrehm/cartage/cli.commit={{ .ShortCommit }}'
       - -X 'github.com/fgrehm/cartage/cli.date={{ .Date }}'
-      - -X 'github.com/fgrehm/cartage/cli.goVersion={{ .Env.GOVERSION }}'
 
 archives:
   - formats: [tar.gz]
@@ -25,9 +25,4 @@ checksum:
   name_template: checksums.txt
 
 changelog:
-  filters:
-    exclude:
-      - "^docs:"
-      - "^ci:"
-      - "^chore:"
-      - "^test:"
+  disable: true

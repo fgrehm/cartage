@@ -12,12 +12,6 @@ import (
 	"github.com/fgrehm/cartage/internal/protocol"
 )
 
-// IsCompatMode checks if the program is running in a compatibility mode
-// based on argv[0] (the program name).
-func IsCompatMode(programName string) bool {
-	return GetCompatMode(programName) != ""
-}
-
 // GetCompatMode returns which compatibility mode to use, or empty string for normal mode.
 func GetCompatMode(programName string) string {
 	base := filepath.Base(programName)

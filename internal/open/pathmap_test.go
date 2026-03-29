@@ -6,11 +6,11 @@ import (
 
 func TestMapPath(t *testing.T) {
 	tests := []struct {
-		name   string
-		env    string // "" means unset
-		unset  bool   // true means unset the env var entirely
-		uri    string
-		want   string
+		name  string
+		env   string // "" means set to empty string
+		unset bool   // true means unset the env var entirely
+		uri   string
+		want  string
 	}{
 		{
 			name:  "env unset",

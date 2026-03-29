@@ -45,7 +45,7 @@ func Run(ctx context.Context, socketPath string, registry *handler.Registry, ver
 		return fmt.Errorf("failed to bind socket %s: %w", socketPath, err)
 	}
 
-	if err := os.Chmod(socketPath, 0600); err != nil {
+	if err := os.Chmod(socketPath, 0o600); err != nil {
 		slog.Warn("failed to set socket permissions", "error", err)
 	}
 
@@ -71,11 +71,9 @@ func Run(ctx context.Context, socketPath string, registry *handler.Registry, ver
 			continue
 		}
 
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
+		wg.Go(func() {
 			handleClient(ctx, conn, registry)
-		}()
+		})
 	}
 
 	// Wait for in-flight connections with a timeout

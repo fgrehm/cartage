@@ -70,10 +70,7 @@ func sendToastKdialog(ctx context.Context, p Payload) error {
 	// kdialog --passivepopup timeout is in seconds, payload is in milliseconds
 	timeoutSec := 5
 	if p.Timeout != nil {
-		timeoutSec = int(*p.Timeout / 1000)
-		if timeoutSec < 1 {
-			timeoutSec = 1
-		}
+		timeoutSec = max(int(*p.Timeout/1000), 1)
 	}
 
 	cmd := exec.CommandContext(ctx, "kdialog",

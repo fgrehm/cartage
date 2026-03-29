@@ -2,6 +2,7 @@ package notify
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log/slog"
 	"os/exec"
@@ -187,7 +188,8 @@ func sendAlert(ctx context.Context, p Payload) error {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
 			if trimmed := strings.TrimSpace(string(output)); len(trimmed) > 0 {
 				return fmt.Errorf("dialog tool failed (exit %d): %s", exitErr.ExitCode(), trimmed)
 			}
@@ -250,7 +252,8 @@ func sendConfirm(ctx context.Context, p Payload) (bool, error) {
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		if exitErr, ok := err.(*exec.ExitError); ok {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
 			if trimmed := strings.TrimSpace(string(output)); len(trimmed) > 0 {
 				return false, fmt.Errorf("dialog tool failed (exit %d): %s", exitErr.ExitCode(), trimmed)
 			}

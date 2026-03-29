@@ -1,23 +1,21 @@
-.PHONY: help build test install clean lint fmt coverage vendor setup-hooks
+.PHONY: help build test install clean lint fmt coverage vendor setup-hooks deadcode govulncheck audit
 
 # Build variables
 BASE_VERSION := $(shell cat VERSION 2>/dev/null || echo "0.0.0")
 GIT_TAG := $(shell git describe --exact-match --tags 2>/dev/null)
 COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
-GO_VERSION := $(shell go version | awk '{print $$3}')
 
 # If building from a git tag, use it. Otherwise append -dev+timestamp
 ifeq ($(GIT_TAG),)
 	VERSION := $(BASE_VERSION)-dev+$(shell date -u +"%Y%m%d%H%M%S")
 else
-	VERSION := $(GIT_TAG)
+	VERSION := $(patsubst v%,%,$(GIT_TAG))
 endif
 
 LDFLAGS := -X 'github.com/fgrehm/cartage/cli.version=$(VERSION)' \
            -X 'github.com/fgrehm/cartage/cli.commit=$(COMMIT)' \
-           -X 'github.com/fgrehm/cartage/cli.date=$(DATE)' \
-           -X 'github.com/fgrehm/cartage/cli.goVersion=$(GO_VERSION)'
+           -X 'github.com/fgrehm/cartage/cli.date=$(DATE)'
 
 # Default target
 help: ## Show this help message
@@ -40,19 +38,10 @@ build: ## Build the cartage binary
 test: ## Run tests
 	@go test -race -shuffle=on ./...
 
-install: build ## Install cartage to ~/.local/bin
-	@echo "Installing to ~/.local/bin..."
-	@mkdir -p ~/.local/bin
-	@if [ -L ~/.local/bin/cartage ]; then \
-		echo "✓ Already installed as symlink (rebuilt binary at dist/cartage)"; \
-	elif [ -e ~/.local/bin/cartage ]; then \
-		rm -f ~/.local/bin/cartage; \
-		cp dist/cartage ~/.local/bin/cartage; \
-		echo "✓ Replaced existing file and installed to ~/.local/bin/cartage"; \
-	else \
-		cp dist/cartage ~/.local/bin/cartage; \
-		echo "✓ Installed to ~/.local/bin/cartage"; \
-	fi
+install: build ## Install cartage to ~/.local/bin (symlink)
+	@mkdir -p "$(HOME)/.local/bin"
+	@ln -sf "$(CURDIR)/dist/cartage" "$(HOME)/.local/bin/cartage"
+	@echo "✓ Installed to ~/.local/bin/cartage"
 
 clean: ## Remove build artifacts
 	@echo "Cleaning..."
@@ -81,3 +70,22 @@ vendor: ## Update vendored dependencies
 	@go mod tidy
 	@go mod vendor
 	@echo "✓ Dependencies vendored"
+
+deadcode: ## Check for unreachable functions
+	@out=$$(go tool deadcode ./...); \
+	if [ -n "$$out" ]; then \
+		echo "Unreachable functions detected:"; \
+		echo "$$out"; \
+		exit 1; \
+	fi; \
+	echo "✓ No dead code found."
+
+govulncheck: ## Run vulnerability check
+	@go tool govulncheck ./...
+
+audit: ## Run complexity and vulnerability checks (informational)
+	@echo "=== Cyclomatic complexity (>15) ==="
+	@go tool gocyclo -over 15 . || true
+	@echo ""
+	@echo "=== Vulnerability check ==="
+	@go tool govulncheck ./... || true

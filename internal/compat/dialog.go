@@ -56,9 +56,9 @@ func parseDialogArgs(args []string, toolName string) notify.Payload {
 
 			switch flag {
 			case "--title":
-				title = strPtr(value)
+				title = new(value)
 			case "--text":
-				text = strPtr(value)
+				text = new(value)
 			case "--width":
 				if w, err := strconv.ParseUint(value, 10, 32); err == nil {
 					w32 := uint32(w)
@@ -70,7 +70,7 @@ func parseDialogArgs(args []string, toolName string) notify.Payload {
 					height = &h32
 				}
 			case "--image":
-				icon = strPtr(value)
+				icon = new(value)
 			case "--timeout", "--button", "--borders", "--buttons-layout":
 				// Ignore
 			}
@@ -81,11 +81,11 @@ func parseDialogArgs(args []string, toolName string) notify.Payload {
 		// Space-separated format: --text value
 		switch arg {
 		case "--info":
-			urgency = strPtr("normal")
+			urgency = new("normal")
 		case "--warning":
-			urgency = strPtr("normal")
+			urgency = new("normal")
 		case "--error":
-			urgency = strPtr("critical")
+			urgency = new("critical")
 		case "--question":
 			isConfirm = true
 		case "--title":
@@ -133,7 +133,7 @@ func parseDialogArgs(args []string, toolName string) notify.Payload {
 		title = text
 	}
 	if title == nil {
-		title = strPtr("Dialog")
+		title = new("Dialog")
 	}
 
 	mode := notify.ModeAlert
@@ -170,8 +170,4 @@ func printDialogHelp(toolName string) {
 	fmt.Println("  --version                Show version")
 	fmt.Println()
 	fmt.Printf("Note: This is cartage in %s compatibility mode.\n", toolName)
-}
-
-func strPtr(s string) *string {
-	return &s
 }

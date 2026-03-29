@@ -20,9 +20,11 @@ const (
 	ToolNone
 )
 
-var clipboardToolOnce sync.Once
-var clipboardToolCached ClipboardTool
-var clipboardToolErr error
+var (
+	clipboardToolOnce   sync.Once
+	clipboardToolCached ClipboardTool
+	clipboardToolErr    error
+)
 
 // detectClipboardTool returns the best available clipboard tool.
 // Results are cached after the first call.
@@ -84,7 +86,7 @@ func listClipboardTypes(ctx context.Context, tool ClipboardTool) ([]string, erro
 	}
 
 	var types []string
-	for _, line := range strings.Split(strings.TrimSpace(string(out)), "\n") {
+	for line := range strings.SplitSeq(strings.TrimSpace(string(out)), "\n") {
 		if t := strings.TrimSpace(line); t != "" {
 			types = append(types, t)
 		}

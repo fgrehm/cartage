@@ -23,6 +23,7 @@ func Execute() {
 
 func init() {
 	rootCmd.AddCommand(clipboardCmd)
+	rootCmd.AddCommand(secretCmd)
 	rootCmd.AddCommand(serveCmd)
 	rootCmd.AddCommand(notifyCmd)
 	rootCmd.AddCommand(openCmd)

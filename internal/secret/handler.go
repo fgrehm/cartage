@@ -28,6 +28,21 @@ type Result struct {
 	Secret string `json:"secret"`
 }
 
+// ParseResult decodes daemon response data into a typed Result.
+// Response.Data is an any that, after JSON round-trip, becomes map[string]any;
+// this re-marshals and unmarshals it to get a properly typed struct.
+func ParseResult(data any) (Result, error) {
+	b, err := json.Marshal(data)
+	if err != nil {
+		return Result{}, fmt.Errorf("failed to encode response data: %w", err)
+	}
+	var r Result
+	if err := json.Unmarshal(b, &r); err != nil {
+		return Result{}, fmt.Errorf("failed to decode secret result: %w", err)
+	}
+	return r, nil
+}
+
 // Handler implements handler.Handler for the "secret" action.
 // It retrieves secrets from the host OS keychain.
 type Handler struct{}

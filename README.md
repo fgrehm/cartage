@@ -169,6 +169,17 @@ echo -n "hunter2" | secret-tool store --label="myapp" service "myapp" username "
 default keychain collection. It is only supported on platforms with the Secret
 Service dbus interface (Linux); elsewhere it returns a clear error.
 
+Cartage also acts as a drop-in `secret-tool` replacement: symlink the binary as
+`secret-tool` and `store`/`lookup` forward to the host keychain.
+
+```sh
+# Inside the container
+ln -s /usr/local/bin/cartage /usr/local/bin/secret-tool
+
+echo -n "hunter2" | secret-tool store --label="myapp" service "myapp" username "alice"
+secret-tool lookup service "myapp" username "alice"   # → hunter2
+```
+
 ### Container setup
 
 Mount the socket and binary into your container:
@@ -228,6 +239,7 @@ Cartage behaves differently based on how it's invoked:
 | `xdg-open` | xdg-open compatible client |
 | `pbcopy` | macOS pbcopy compatible client (stdin → clipboard) |
 | `pbpaste` | macOS pbpaste compatible client (clipboard → stdout) |
+| `secret-tool` | secret-tool compatible client (store/lookup → host keychain) |
 | `yad` | yad compatible client (dialogs) |
 | `zenity` | zenity compatible client (dialogs) |
 | `kdialog` | kdialog compatible client (dialogs) |

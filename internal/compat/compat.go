@@ -30,6 +30,8 @@ func GetCompatMode(programName string) string {
 		return "pbcopy"
 	case strings.HasPrefix(base, "pbpaste"):
 		return "pbpaste"
+	case strings.HasPrefix(base, "secret-tool"):
+		return "secret-tool"
 	default:
 		return ""
 	}

@@ -142,34 +142,59 @@ socket. This is what go-keyring apps (`gh`, `ntn`) actually need. Not yet built.
   forward over the narrow cartage socket, so the container never gains access to
   the host's dbus session bus.
 
-## Open decision: Secret Service provider vs. mounting the host socket
+## Open decision: how to serve `gh`/`ntn` in containers
 
-Serving `gh`/`ntn` requires either:
+**Threat model:** the containers run coding agents that are treated as untrusted
+(they may attempt anything). This rules out giving the container broad host
+access and shapes the options below.
 
 ```mermaid
 flowchart TD
-    A["Serve gh / ntn in containers?"] --> B["Secret Service provider"]
-    A --> C["Mount host dbus socket"]
+    A["Serve gh / ntn in an untrusted container?"] --> B["Scoped token (env var)"]
+    A --> C["Secret Service provider"]
+    A --> D["Mount host dbus socket"]
 
-    B --> B1["Effort: substantial"]
-    B --> B2["Container sees: keychain only"]
-    B --> B3["Fits cartage: yes"]
+    B --> B1["Effort: trivial"]
+    B --> B2["Agent gets: one scoped, revocable token"]
+    B --> B3["Fits cartage: n/a (no keychain bridge)"]
 
-    C --> C1["Effort: trivial"]
-    C --> C2["Container sees: whole host dbus + keychain"]
-    C --> C3["Fits cartage: no"]
+    C --> C1["Effort: substantial"]
+    C --> C2["Agent gets: keychain only, via cartage"]
+    C --> C3["Fits cartage: yes"]
+
+    D --> D1["Effort: trivial"]
+    D --> D2["Agent gets: whole host dbus + keychain"]
+    D --> D3["Fits cartage: no — rejected"]
 ```
 
-1. **A Secret Service dbus provider** (cartage-consistent). Substantial effort:
+1. **Scoped token (env var).** Inject a fine-grained, short-lived token (e.g.
+   `GH_TOKEN`) at container start. The agent gets a limited, revocable
+   credential; if it goes rogue you revoke one token, not the whole keychain.
+   This is the gh maintainers' recommendation for headless/untrusted
+   environments. No keychain bridge needed.
+2. **A Secret Service dbus provider** (cartage-consistent). Substantial effort:
    implement `OpenSession`, `CreateCollection`/`ReadAlias`, `SearchItems`,
-   `CreateItem`, `GetSecret`, `Delete`, `Unlock`. Container sees only the
-   keychain, only what cartage allows.
-2. **Mount the host dbus session bus** into the container (volume + env var).
-   Trivial, but hands the container the entire host dbus and the whole keychain —
-   the security boundary cartage exists to provide.
+   `CreateItem`, `GetSecret`, `Delete`, `Unlock`, plus a container-local
+   dbus-daemon (the container has none). The agent sees only the keychain, only
+   what cartage allows — and cartage should support an **allowlist** so the
+   agent cannot read the whole keychain.
+3. **Mount the host dbus session bus** (volume + env var). Trivial, but hands the
+   container the entire host dbus and the whole keychain. **Rejected** for
+   untrusted agents.
 
-**Recommendation:** Option 1 if the security boundary matters; Option 2 if the
-containers are trusted dev environments. This decision gates the provider work.
+**Recommendation:** for untrusted coding agents, prefer **scoped tokens** over a
+keychain bridge. If a keychain bridge is required, use the **provider** with an
+allowlist. Socket mounting is not acceptable under this threat model. This
+decision gates the provider work (Phase 7).
+
+## Narrow-bridge principle
+
+Cartage is the single narrow bridge for every host interaction — notifications,
+clipboard, `xdg-open`, and (potentially) the keychain. The container never gets
+direct host access; everything funnels through the cartage socket. The keychain
+provider is just one more instance of this pattern: a narrow, policy-controlled
+bridge instead of a wide-open dbus mount. If the keychain bridge is not worth the
+risk, the same principle argues for keeping the other bridges narrow too.
 
 ## Phased plan
 

@@ -86,4 +86,4 @@ handler tests plus a manual smoke test against the running daemon.
 - [x] Phase 0: Tracer bullet (real keychain round-trip) — PASSED against real keychain
 - [x] Phase 1: Handler
 - [x] Phase 2: CLI
-- [ ] Phase 3: Wire up and document
+- [x] Phase 3: Wire up and document

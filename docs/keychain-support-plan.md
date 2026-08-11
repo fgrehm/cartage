@@ -196,6 +196,49 @@ provider is just one more instance of this pattern: a narrow, policy-controlled
 bridge instead of a wide-open dbus mount. If the keychain bridge is not worth the
 risk, the same principle argues for keeping the other bridges narrow too.
 
+## Possible future direction: dbus host bridge
+
+**Not committed — a direction we might take.** If a dbus provider is built for
+the keychain, it could be generalized into a **dbus host bridge**: a container-
+local dbus session bus where cartage registers several host-facing services, all
+forwarding to the host over the cartage socket.
+
+```mermaid
+flowchart LR
+    subgraph Container
+        bus["container dbus session bus"]
+        sec["org.freedesktop.secrets"]
+        notif["org.freedesktop.Notifications"]
+        clip["clipboard (portal / custom)"]
+    end
+
+    subgraph Host
+        daemon["cartage daemon"]
+    end
+
+    bus --> sec
+    bus --> notif
+    bus --> clip
+    sec -- "cartage socket" --> daemon
+    notif -- "cartage socket" --> daemon
+    clip -- "cartage socket" --> daemon
+```
+
+Apps in the container that speak dbus for notifications, clipboard, or the
+keychain would be forwarded to the host transparently, alongside (not replacing)
+the existing aliases and CLI.
+
+Considerations if pursued:
+
+- Each interface is real work. `org.freedesktop.secrets` is the largest;
+  `org.freedesktop.Notifications` is smaller; clipboard has no single canonical
+  dbus interface (usually the portal or a custom one), so it is the fuzziest.
+- Would warrant its own tracer-bullet plan, starting with the smallest interface
+  (notifications) to validate the approach before growing.
+- The threat model still applies: notifications/clipboard are low-risk bridges;
+  the keychain is the high-risk one, and the scoped-token recommendation for
+  `gh`/`ntn` stands regardless.
+
 ## Phased plan
 
 ### Phase 0: Tracer bullet — DONE

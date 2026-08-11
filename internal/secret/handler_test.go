@@ -99,3 +99,30 @@ func TestHandlerGetNotFound(t *testing.T) {
 		t.Errorf("status: want error, got %s", resp.Status)
 	}
 }
+
+func TestHandlerList(t *testing.T) {
+	if !keychainAvailable() {
+		t.Skip("host keychain unavailable; skipping list test")
+	}
+
+	h := &Handler{}
+	resp, err := h.Handle(context.Background(), json.RawMessage(`{"op":"list"}`))
+	if err != nil {
+		t.Fatalf("unexpected Go error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status: want ok, got %s (%s)", resp.Status, resp.Error)
+	}
+
+	data, err := json.Marshal(resp.Data)
+	if err != nil {
+		t.Fatalf("failed to marshal response data: %v", err)
+	}
+	var r ListResult
+	if err := json.Unmarshal(data, &r); err != nil {
+		t.Fatalf("failed to decode list result: %v", err)
+	}
+	if r.Secrets == nil {
+		t.Error("secrets should not be nil")
+	}
+}

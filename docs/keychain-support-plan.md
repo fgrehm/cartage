@@ -81,9 +81,24 @@ handler tests plus a manual smoke test against the running daemon.
 
 **Commit:** `docs(secret): register handler and document secret get`
 
+## Phase 4: List (added later)
+
+**Goal:** Add a `secret list` operation.
+
+**Key changes:**
+- `internal/secret/list.go`: `listSecrets()` queries the Secret Service dbus
+  interface directly (go-keyring has no List API). Guards on `runtime.GOOS` and
+  returns a clear error on non-Linux platforms.
+- `internal/secret/handler.go`: `OpList`, `ListResult`, `ParseListResult`.
+- `cli/secret.go`: `cartage secret list`.
+- `internal/secret/handler_test.go`: list test that skips when keychain unavailable.
+
+**Commit:** `feat(secret): add secret list command`
+
 ## Progress
 
 - [x] Phase 0: Tracer bullet (real keychain round-trip) — PASSED against real keychain
 - [x] Phase 1: Handler
 - [x] Phase 2: CLI
 - [x] Phase 3: Wire up and document
+- [x] Phase 4: List

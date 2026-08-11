@@ -54,6 +54,46 @@ Examples:
 	},
 }
 
+var secretListCmd = &cobra.Command{
+	Use:   "list",
+	Short: "List secrets in the host OS keychain",
+	Long: `List the service/user pairs of secrets stored in the host OS keychain.
+
+Only supported on platforms with the Secret Service dbus interface (Linux).
+
+Examples:
+  cartage secret list`,
+	Args: cobra.NoArgs,
+	Run: func(cmd *cobra.Command, args []string) {
+		payload := secret.Payload{Op: secret.OpList}
+		payloadJSON, err := json.Marshal(payload)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		resp, err := client.Send(protocol.Request{
+			Version: protocol.CurrentVersion,
+			Action:  "secret",
+			Payload: payloadJSON,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		result, err := secret.ParseListResult(resp.Data)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		for _, ref := range result.Secrets {
+			fmt.Printf("%s\t%s\n", ref.Service, ref.User)
+		}
+	},
+}
+
 func init() {
 	secretCmd.AddCommand(secretGetCmd)
+	secretCmd.AddCommand(secretListCmd)
 }

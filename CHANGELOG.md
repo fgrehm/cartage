@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ### Added
 
 - `secret get` action and `cartage secret get SERVICE USER` command to retrieve secrets from the host OS keychain (Secret Service on Linux, Keychain on macOS, Credential Manager on Windows)
+- `secret list` action and `cartage secret list` command to list secrets in the default keychain collection (Linux/Secret Service only; clear error elsewhere)
 
 ## [0.2.1] - 2026-03-11
 

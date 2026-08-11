@@ -138,6 +138,7 @@ read credentials without baking them into images.
 
 ```sh
 cartage secret get SERVICE USER
+cartage secret list
 ```
 
 Secrets are addressed by a `service` and `user` (account) pair, matching how the
@@ -153,6 +154,10 @@ Then retrieve from a container:
 ```sh
 cartage secret get myapp alice
 ```
+
+`cartage secret list` prints the `service`/`user` pairs of all secrets in the
+default keychain collection. It is only supported on platforms with the Secret
+Service dbus interface (Linux); elsewhere it returns a clear error.
 
 ### Container setup
 
@@ -240,7 +245,7 @@ Newline-delimited JSON over Unix socket.
 }
 ```
 
-Actions: `notify` (toast, alert, confirm), `open` (xdg-open forwarding), `clipboard` (read/write text and images), `secret` (get from the host OS keychain).
+Actions: `notify` (toast, alert, confirm), `open` (xdg-open forwarding), `clipboard` (read/write text and images), `secret` (get/list from the host OS keychain).
 
 ## Socket discovery
 

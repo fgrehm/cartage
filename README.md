@@ -130,6 +130,30 @@ cartage clipboard paste
 cartage clipboard paste --output /tmp/pasted.png
 ```
 
+### Secrets
+
+Retrieve secrets stored in the host OS keychain (Secret Service / libsecret on
+Linux, Keychain on macOS, Credential Manager on Windows). This lets containers
+read credentials without baking them into images.
+
+```sh
+cartage secret get SERVICE USER
+```
+
+Secrets are addressed by a `service` and `user` (account) pair, matching how the
+keychain stores entries. Store them on the host with your keychain's tooling, e.g.
+on Linux:
+
+```sh
+echo -n "hunter2" | secret-tool store --label="myapp" service "myapp" username "alice"
+```
+
+Then retrieve from a container:
+
+```sh
+cartage secret get myapp alice
+```
+
 ### Container setup
 
 Mount the socket and binary into your container:
@@ -216,7 +240,7 @@ Newline-delimited JSON over Unix socket.
 }
 ```
 
-Actions: `notify` (toast, alert, confirm), `open` (xdg-open forwarding), `clipboard` (read/write text and images).
+Actions: `notify` (toast, alert, confirm), `open` (xdg-open forwarding), `clipboard` (read/write text and images), `secret` (get from the host OS keychain).
 
 ## Socket discovery
 

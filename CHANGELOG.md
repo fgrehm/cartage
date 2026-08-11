@@ -5,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+
+- `secret get` action and `cartage secret get SERVICE USER` command to retrieve secrets from the host OS keychain (Secret Service on Linux, Keychain on macOS, Credential Manager on Windows)
+
 ## [0.2.1] - 2026-03-11
 
 ### Fixed

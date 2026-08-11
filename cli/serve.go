@@ -9,6 +9,7 @@ import (
 	"github.com/fgrehm/cartage/internal/handler"
 	"github.com/fgrehm/cartage/internal/notify"
 	"github.com/fgrehm/cartage/internal/open"
+	"github.com/fgrehm/cartage/internal/secret"
 	"github.com/fgrehm/cartage/internal/server"
 	"github.com/spf13/cobra"
 )
@@ -28,6 +29,7 @@ or use the path specified by --socket or CARTAGE_SOCKET.`,
 		registry.Register(&clipboard.Handler{})
 		registry.Register(&notify.Handler{})
 		registry.Register(&open.Handler{})
+		registry.Register(&secret.Handler{})
 
 		ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 		defer stop()

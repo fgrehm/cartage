@@ -3,6 +3,7 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/fgrehm/cartage/internal/client"
@@ -93,7 +94,50 @@ Examples:
 	},
 }
 
+var secretSetCmd = &cobra.Command{
+	Use:   "set SERVICE USER [SECRET]",
+	Short: "Store a secret in the host OS keychain",
+	Long: `Store a secret in the host OS keychain under a service and user (account)
+pair. If SECRET is omitted, it is read from stdin.
+
+Examples:
+  cartage secret set myapp alice "hunter2"
+  echo -n "hunter2" | cartage secret set myapp alice`,
+	Args: cobra.RangeArgs(2, 3),
+	Run: func(cmd *cobra.Command, args []string) {
+		var secretValue string
+		if len(args) == 3 {
+			secretValue = args[2]
+		} else {
+			data, err := io.ReadAll(os.Stdin)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error reading stdin: %v\n", err)
+				os.Exit(1)
+			}
+			secretValue = string(data)
+		}
+
+		payload := secret.Payload{Op: secret.OpSet, Service: args[0], User: args[1], Secret: secretValue}
+		payloadJSON, err := json.Marshal(payload)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+
+		_, err = client.Send(protocol.Request{
+			Version: protocol.CurrentVersion,
+			Action:  "secret",
+			Payload: payloadJSON,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+	},
+}
+
 func init() {
 	secretCmd.AddCommand(secretGetCmd)
 	secretCmd.AddCommand(secretListCmd)
+	secretCmd.AddCommand(secretSetCmd)
 }

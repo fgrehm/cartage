@@ -95,6 +95,18 @@ handler tests plus a manual smoke test against the running daemon.
 
 **Commit:** `feat(secret): add secret list command`
 
+## Phase 5: Set (added later)
+
+**Goal:** Add a `secret set` operation.
+
+**Key changes:**
+- `internal/secret/handler.go`: `OpSet`, `handleSet` calling `keyring.Set`.
+- `cli/secret.go`: `cartage secret set SERVICE USER [SECRET]`, reading from
+  stdin when the value is omitted.
+- `internal/secret/handler_test.go`: set tests using `keyring.MockInit()`.
+
+**Commit:** `feat(secret): add secret set command`
+
 ## Progress
 
 - [x] Phase 0: Tracer bullet (real keychain round-trip) — PASSED against real keychain
@@ -102,3 +114,4 @@ handler tests plus a manual smoke test against the running daemon.
 - [x] Phase 2: CLI
 - [x] Phase 3: Wire up and document
 - [x] Phase 4: List
+- [x] Phase 5: Set

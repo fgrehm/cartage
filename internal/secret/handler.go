@@ -15,6 +15,7 @@ type Op string
 const (
 	OpGet  Op = "get"
 	OpList Op = "list"
+	OpSet  Op = "set"
 )
 
 // Payload is the action-specific data for a "secret" request.
@@ -22,6 +23,7 @@ type Payload struct {
 	Op      Op     `json:"op"`
 	Service string `json:"service"`
 	User    string `json:"user"`
+	Secret  string `json:"secret,omitempty"` // for set: the secret value
 }
 
 // Result is the action-specific data returned in Response.Data for a get.
@@ -81,6 +83,9 @@ func (h *Handler) Handle(ctx context.Context, raw json.RawMessage) (*protocol.Re
 	case OpList:
 		return h.handleList()
 
+	case OpSet:
+		return h.handleSet(p)
+
 	default:
 		return protocol.ErrorResponse(fmt.Sprintf("secret: unknown op: %s", p.Op)), nil
 	}
@@ -108,4 +113,22 @@ func (h *Handler) handleList() (*protocol.Response, error) {
 		return protocol.ErrorResponse(fmt.Sprintf("secret: failed to list: %v", err)), nil
 	}
 	return protocol.OkResponse(ListResult{Secrets: refs}), nil
+}
+
+func (h *Handler) handleSet(p Payload) (*protocol.Response, error) {
+	if p.Service == "" {
+		return protocol.ErrorResponse("secret: set requires service"), nil
+	}
+	if p.User == "" {
+		return protocol.ErrorResponse("secret: set requires user"), nil
+	}
+	if p.Secret == "" {
+		return protocol.ErrorResponse("secret: set requires secret"), nil
+	}
+
+	if err := keyring.Set(p.Service, p.User, p.Secret); err != nil {
+		return protocol.ErrorResponse(fmt.Sprintf("secret: failed to set %q for %q: %v", p.Service, p.User, err)), nil
+	}
+
+	return protocol.OkResponse(nil), nil
 }

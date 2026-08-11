@@ -126,3 +126,57 @@ func TestHandlerList(t *testing.T) {
 		t.Error("secrets should not be nil")
 	}
 }
+
+func TestHandlerSetSuccess(t *testing.T) {
+	keyring.MockInit()
+
+	h := &Handler{}
+	resp, err := h.Handle(context.Background(), json.RawMessage(`{"op":"set","service":"myapp","user":"alice","secret":"hunter2"}`))
+	if err != nil {
+		t.Fatalf("unexpected Go error: %v", err)
+	}
+	if resp.Status != "ok" {
+		t.Fatalf("status: want ok, got %s (%s)", resp.Status, resp.Error)
+	}
+
+	got, err := keyring.Get("myapp", "alice")
+	if err != nil {
+		t.Fatalf("failed to read back secret: %v", err)
+	}
+	if got != "hunter2" {
+		t.Errorf("secret: want hunter2, got %s", got)
+	}
+}
+
+func TestHandlerSetMissingService(t *testing.T) {
+	h := &Handler{}
+	resp, err := h.Handle(context.Background(), json.RawMessage(`{"op":"set","user":"alice","secret":"hunter2"}`))
+	if err != nil {
+		t.Fatalf("unexpected Go error: %v", err)
+	}
+	if resp.Status != "error" {
+		t.Errorf("status: want error, got %s", resp.Status)
+	}
+}
+
+func TestHandlerSetMissingUser(t *testing.T) {
+	h := &Handler{}
+	resp, err := h.Handle(context.Background(), json.RawMessage(`{"op":"set","service":"myapp","secret":"hunter2"}`))
+	if err != nil {
+		t.Fatalf("unexpected Go error: %v", err)
+	}
+	if resp.Status != "error" {
+		t.Errorf("status: want error, got %s", resp.Status)
+	}
+}
+
+func TestHandlerSetMissingSecret(t *testing.T) {
+	h := &Handler{}
+	resp, err := h.Handle(context.Background(), json.RawMessage(`{"op":"set","service":"myapp","user":"alice"}`))
+	if err != nil {
+		t.Fatalf("unexpected Go error: %v", err)
+	}
+	if resp.Status != "error" {
+		t.Errorf("status: want error, got %s", resp.Status)
+	}
+}

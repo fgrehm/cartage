@@ -137,22 +137,32 @@ Linux, Keychain on macOS, Credential Manager on Windows). This lets containers
 read credentials without baking them into images.
 
 ```sh
+cartage secret set SERVICE USER [SECRET]
 cartage secret get SERVICE USER
 cartage secret list
 ```
 
 Secrets are addressed by a `service` and `user` (account) pair, matching how the
-keychain stores entries. Store them on the host with your keychain's tooling, e.g.
-on Linux:
+keychain stores entries. `set` stores a secret (reading from stdin if the value
+is omitted), `get` retrieves it, and `list` shows all `service`/`user` pairs.
+
+```sh
+# Store (value as arg, or via stdin)
+cartage secret set myapp alice "hunter2"
+echo -n "hunter2" | cartage secret set myapp alice
+
+# Retrieve
+cartage secret get myapp alice
+
+# List
+cartage secret list
+```
+
+You can also store secrets on the host with your keychain's own tooling, e.g. on
+Linux:
 
 ```sh
 echo -n "hunter2" | secret-tool store --label="myapp" service "myapp" username "alice"
-```
-
-Then retrieve from a container:
-
-```sh
-cartage secret get myapp alice
 ```
 
 `cartage secret list` prints the `service`/`user` pairs of all secrets in the
@@ -245,7 +255,7 @@ Newline-delimited JSON over Unix socket.
 }
 ```
 
-Actions: `notify` (toast, alert, confirm), `open` (xdg-open forwarding), `clipboard` (read/write text and images), `secret` (get/list from the host OS keychain).
+Actions: `notify` (toast, alert, confirm), `open` (xdg-open forwarding), `clipboard` (read/write text and images), `secret` (set/get/list from the host OS keychain).
 
 ## Socket discovery
 

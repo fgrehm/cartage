@@ -130,6 +130,56 @@ cartage clipboard paste
 cartage clipboard paste --output /tmp/pasted.png
 ```
 
+### Secrets
+
+Retrieve secrets stored in the host OS keychain (Secret Service / libsecret on
+Linux, Keychain on macOS, Credential Manager on Windows). This lets containers
+read credentials without baking them into images.
+
+```sh
+cartage secret set SERVICE USER [SECRET]
+cartage secret get SERVICE USER
+cartage secret list
+```
+
+Secrets are addressed by a `service` and `user` (account) pair, matching how the
+keychain stores entries. `set` stores a secret (reading from stdin if the value
+is omitted), `get` retrieves it, and `list` shows all `service`/`user` pairs.
+
+```sh
+# Store (value as arg, or via stdin)
+cartage secret set myapp alice "hunter2"
+echo -n "hunter2" | cartage secret set myapp alice
+
+# Retrieve
+cartage secret get myapp alice
+
+# List
+cartage secret list
+```
+
+You can also store secrets on the host with your keychain's own tooling, e.g. on
+Linux:
+
+```sh
+echo -n "hunter2" | secret-tool store --label="myapp" service "myapp" username "alice"
+```
+
+`cartage secret list` prints the `service`/`user` pairs of all secrets in the
+default keychain collection. It is only supported on platforms with the Secret
+Service dbus interface (Linux); elsewhere it returns a clear error.
+
+Cartage also acts as a drop-in `secret-tool` replacement: symlink the binary as
+`secret-tool` and `store`/`lookup` forward to the host keychain.
+
+```sh
+# Inside the container
+ln -s /usr/local/bin/cartage /usr/local/bin/secret-tool
+
+echo -n "hunter2" | secret-tool store --label="myapp" service "myapp" username "alice"
+secret-tool lookup service "myapp" username "alice"   # → hunter2
+```
+
 ### Container setup
 
 Mount the socket and binary into your container:
@@ -189,6 +239,7 @@ Cartage behaves differently based on how it's invoked:
 | `xdg-open` | xdg-open compatible client |
 | `pbcopy` | macOS pbcopy compatible client (stdin → clipboard) |
 | `pbpaste` | macOS pbpaste compatible client (clipboard → stdout) |
+| `secret-tool` | secret-tool compatible client (store/lookup → host keychain) |
 | `yad` | yad compatible client (dialogs) |
 | `zenity` | zenity compatible client (dialogs) |
 | `kdialog` | kdialog compatible client (dialogs) |
@@ -216,7 +267,7 @@ Newline-delimited JSON over Unix socket.
 }
 ```
 
-Actions: `notify` (toast, alert, confirm), `open` (xdg-open forwarding), `clipboard` (read/write text and images).
+Actions: `notify` (toast, alert, confirm), `open` (xdg-open forwarding), `clipboard` (read/write text and images), `secret` (set/get/list from the host OS keychain).
 
 ## Socket discovery
 

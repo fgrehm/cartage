@@ -27,6 +27,8 @@ func main() {
 		compat.HandlePbcopy(os.Args)
 	case "pbpaste":
 		compat.HandlePbpaste(os.Args)
+	case "secret-tool":
+		compat.HandleSecretTool(os.Args)
 	default:
 		cli.Execute()
 	}
